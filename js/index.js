@@ -1,53 +1,76 @@
 'use strict';
 
+const dataBase = [];
+
 const modalAdd = document.querySelector('.modal__add'),
     addAd = document.querySelector('.add__ad'),
     modalBtnSubmit = document.querySelector('.modal__btn-submit'),
     modalSubmit = document.querySelector('.modal__submit'),
     modalItem = document.querySelector('.modal__item'),
-    catalog = document.querySelector('.catalog');
+    catalog = document.querySelector('.catalog'),
+    modalBtnWarning = document.querySelector('.modal__btn-warning');
 
-addAd.addEventListener('click', () => {
-modalAdd.classList.remove('hide');
-    
-});
+const elementsModalSubmit = [...modalSubmit.elements]
+    .filter(elem => elem.tagName !== 'BUTTON' && elem.type !== 'submit');
 
-modalAdd.addEventListener('click', (event) => {
+// закрытие модальных окон одной функцией 
+const closeModal =  function (event) {
     const target = event.target;
 
-    if(target.closest('.modal__close') ||
-        target === modalAdd) {
-        modalAdd.classList.add('hide');
-        modalSubmit.reset();         
-        
-    }
-});
-
-document.addEventListener('keydown', (event) => {
-    if(event.keyCode == 27){
+    if(target.closest('.modal__close') || target === this ||
+        event.code === 'Escape') {
         modalAdd.classList.add('hide');
         modalItem.classList.add('hide');
         modalSubmit.reset();
-    };  
-}); 
+        document.removeEventListener('keydown', closeModal);
+        if (this === modalAdd){
+            modalSubmit.reset();
+        }       
+    }
+};
 
-catalog.addEventListener('click', (event) => {
+modalSubmit.addEventListener('input', () => {
+    const validForm = elementsModalSubmit.every(elem => elem.value);
+    modalBtnSubmit.disabled = !validForm;
+    modalBtnWarning.style.display = validForm ? 'none' : '';
+});  
 
-     if(event.target.closest('li')){
-        modalItem.classList.remove('hide');
-    };
+// при отправки мейн форма закрывается
+modalSubmit.addEventListener('submit', event => {
+    event.preventDefault();
+    const itemObj = {};
+    for (const elem of elementsModalSubmit) {
+        itemObj[elem.name] = elem.value;
+        modalAdd.classList.add('hide');
+    }
+    dataBase.push(itemObj);
+    modalSubmit.reset();
+})
 
+addAd.addEventListener('click', () => {
+    modalAdd.classList.remove('hide');
+    modalBtnSubmit.disabled = true;
+    document.addEventListener('keydown', closeModal);    
 });
 
-modalItem.addEventListener('click', (event) => {
+catalog.addEventListener('click', event => {
     const target = event.target;
 
-    if(target.closest('.modal__close') ||
-        target === modalItem) {
-            modalItem.classList.add('hide');
-        modalSubmit.reset();         
-        
-    }
+    if(target.closest('.card')) {
+        modalItem.classList.remove('hide');
+        document.addEventListener('keydown', closeModal);
+    };  
 });
+
+
+modalAdd.addEventListener('click', closeModal);
+modalItem.addEventListener('click', closeModal);
+
+
+
+
+
+
+
 
 
